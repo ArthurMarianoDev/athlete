@@ -1,0 +1,173 @@
+{
+  "app_name": "ZoneTrack",
+  "personality": "7 Dark-First Utility",
+  "personality_one_liner": "A sharp, tactical command-center designed for live performance, rapid scanning, and immediate competition feedback.",
+  "color": {
+    "surface": "#0D0E12",
+    "onSurface": "#F8F9FA",
+    "surfaceSecondary": "#1A1C23",
+    "onSurfaceSecondary": "#E2E4E9",
+    "surfaceTertiary": "#262933",
+    "onSurfaceTertiary": "#C3C6CF",
+    "surfaceInverse": "#F8F9FA",
+    "onSurfaceInverse": "#0D0E12",
+    "brand": "#00E65C",
+    "onBrand": "#000000",
+    "brandPrimary": "#00E65C",
+    "onBrandPrimary": "#000000",
+    "brandSecondary": "#00B347",
+    "onBrandSecondary": "#000000",
+    "brandTertiary": "#003314",
+    "onBrandTertiary": "#00E65C",
+    "success": "#00E65C",
+    "onSuccess": "#000000",
+    "warning": "#FFB800",
+    "onWarning": "#000000",
+    "error": "#FF3333",
+    "onError": "#FFFFFF",
+    "info": "#3399FF",
+    "onInfo": "#FFFFFF",
+    "border": "#262933",
+    "borderStrong": "#3A3E4D",
+    "divider": "#1A1C23",
+    "muted": "#8A8D98"
+  },
+  "typography": {
+    "displayFontFamily": "Rajdhani",
+    "textFontFamily": "Manrope",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Use tight grids for operational metrics, generous padding around containers. Make touch targets minimum 44x44pt.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": 0,
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": false,
+    "do's": [
+      "Use subtle dark gradient scrims over maps for text readability."
+    ],
+    "dont's": [
+      "Do not use blur or glassmorphism on live tracking screens. Performance and clarity beat aesthetic here."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Auth",
+      "purpose": "Log in via Google or Email to enter the competition zone.",
+      "states": {
+        "loading": "Spinner centered on dark screen.",
+        "empty": "N/A",
+        "error": "Standard error toast or message with retry button."
+      },
+      "layout": "Hero image (runner silhouette) with gradient scrim at top. Form inputs below. Prominent 'Continue with Google' and 'Email/Password' buttons at the bottom. Inputs use surfaceSecondary backgrounds with border highlight on focus."
+    },
+    {
+      "name": "Home (Zones)",
+      "purpose": "Discover and select local predefined or auto-radius competition zones.",
+      "states": {
+        "loading": "Skeleton cards mimicking zone headers.",
+        "empty": "Illustration of empty track with message 'No zones nearby' and CTA 'Create Auto-Radius Zone'.",
+        "error": "Error loading zones. Retry button."
+      },
+      "layout": "Sticky header. Vertical scroll of wide cards (width: 100% minus padding). Each card features a top-down track image with a heavy gradient-to-dark scrim, large Rajdhani title for the Zone name, and neon green badges for active competitors count."
+    },
+    {
+      "name": "Record (Live Track)",
+      "purpose": "Live GPS tracking of the workout with immediate performance metrics.",
+      "states": {
+        "loading": "Locating GPS signal...",
+        "empty": "Map view waiting for user to start.",
+        "error": "GPS signal lost."
+      },
+      "layout": "Full-screen MapView. Top overlay for GPS signal and current Zone. Bottom sheet/overlay showing 3 massive metrics (Distance, Pace, Time) in Rajdhani. A large, pill-shaped or circular neon green FAB for Start/Pause securely positioned above the safe area."
+    },
+    {
+      "name": "Leaderboard",
+      "purpose": "Compare user's performance against others in the zone by distance and pace.",
+      "states": {
+        "loading": "Skeleton rows of leaderboard.",
+        "empty": "Empty state illustration with 'Be the first to conquer this zone'.",
+        "error": "Failed to load rankings. Retry button."
+      },
+      "layout": "Top segmented control (Distance | Pace) sticky under header. Stacked list of participants. Each row contains rank (Rajdhani), avatar, name, and the metric. The current user's row is pinned at the bottom of the screen (above bottom tabs) with a surfaceTertiary background and neon border so it is always visible."
+    },
+    {
+      "name": "Activity Detail",
+      "purpose": "Review completed activity stats and route.",
+      "states": {
+        "loading": "Loading activity data...",
+        "empty": "N/A",
+        "error": "Failed to load activity."
+      },
+      "layout": "Top 40% is a static map snapshot with the route drawn in brandPrimary. Vertical gradient scrim from bottom of map into the background surface. Below the map: a grid (flexWrap) of detailed metrics (Calories, Avg Pace, Elevation, Duration) and a timeline/splits list."
+    },
+    {
+      "name": "Profile",
+      "purpose": "Athlete's personal stats and history.",
+      "states": {
+        "loading": "Loading athlete profile...",
+        "empty": "No activities logged yet.",
+        "error": "Failed to load profile."
+      },
+      "layout": "Header with user avatar and total aggregated stats (Total Distance, Total Runs). Below is a list of recent activities, each showing a mini map thumbnail, date, and core metrics."
+    }
+  ],
+  "images": {
+    "auth_hero": {
+      "url": "https://images.pexels.com/photos/38693175/pexels-photo-38693175.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Runner in bright urban environment participating in night marathon"
+    },
+    "zone_card_bg": {
+      "url": "https://images.pexels.com/photos/36603885/pexels-photo-36603885.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Top-down nighttime shot of athletic stadium track"
+    },
+    "empty_state_stadium": {
+      "url": "https://images.unsplash.com/photo-1648235692910-947cb90ddd97?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxkYXJrJTIwZml0bmVzcyUyMGVtcHR5JTIwc3RhZGl1bXxlbnwwfHx8fDE3ODk2ODA1ODV8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Dark athletic hallway with running lines"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Follow the 'Dark-First Utility' personality strictly. Do not use generic blue or purple, and avoid excessive blur/glass effects as they hinder readability during live sports tracking.",
+    "Implement the brand color (Neon Green #00E65C) intentionally and sparingly as an accent for live tracks, primary actions, and selected states.",
+    "Use 'Rajdhani' for all numerical metrics, scores, and large headers to give a technical, precise feel. Use 'Manrope' for readable body text, labels, and names.",
+    "For the Record/Live Track screen, prioritize glanceability. Metrics must be large, high-contrast, and touch targets (Start/Pause/Stop) must be minimum 44x44pt and easily accessible.",
+    "The user's own rank must be pinned at the bottom of the scrolling Leaderboard screen so they never lose context of their position.",
+    "Always apply a top-to-bottom gradient scrim when placing text over images (like Zone cards or Auth Hero). The bottom stop must be >=70% surfaceInverse or surface to ensure text readability.",
+    "Make sure forms and buttons are designed for touch. Primary CTA buttons should be sticky at the bottom over scrolling content, utilizing the safe-area padding correctly.",
+    "For maps (Live Track and Detail), use a dark map style if supported by the map provider to match the overall theme seamlessly.",
+    "Do NOT use Flutter idioms or web DOM models; use only native React Native elements (Pressable instead of TouchableOpacity)."
+  ]
+}
