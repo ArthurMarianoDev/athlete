@@ -32,7 +32,14 @@ Construir um app mobile que usa GPS para criar uma zona local de competição pa
 - [x] Perfil: stats agregados, histórico com miniatura de rota, logout
 - [x] Detalhe da atividade com grid de métricas e exclusão (soft delete)
 - [x] Tema dark verde neon, fontes Rajdhani/Manrope, ícones SVG
-- Testado: backend 14/14 pytest, frontend fluxos críticos OK
+- [x] Recordes pessoais + Meta semanal (PUT /profile/goal); Compartilhar treino (texto); Feed da zona com curtidas (POST /activities/{id}/like)
+- [x] Mapa satelital (Leaflet + Esri World Imagery em WebView, sem chave) no rastreamento ao vivo e no detalhe, com zoom/pan
+- [x] Imagem compartilhável estilo Strava (satélite + rota neon + dados + nome + marca), salva na galeria (expo-media-library) e compartilhada (expo-sharing) — device-only
+- Testado: backend 22/22 pytest; web preview degrada com elegância (WebView/native são device-only)
+
+## Notas técnicas
+- Satélite via Esri World Imagery (público, CORS habilitado). Sem Google/Apple, sem chave.
+- Recursos WebView + galeria/compartilhar funcionam em Expo Go/build (device), não no preview web.
 
 ## Backlog / Next
 - P1: Mapa real (react-native-maps) com estilo dark quando gerar build nativo

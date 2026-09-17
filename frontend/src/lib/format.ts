@@ -8,6 +8,7 @@ export type User = {
   email?: string;
   picture?: string | null;
   created_at?: string;
+  weekly_goal_km?: number;
 };
 
 export type RoutePoint = { latitude: number; longitude: number; t?: number };
@@ -40,6 +41,8 @@ export type Activity = {
   started_at?: string;
   created_at?: string;
   zone?: Zone | null;
+  like_count?: number;
+  liked_by_me?: boolean;
 };
 
 export type LeaderboardEntry = {
@@ -110,4 +113,24 @@ export function timeAgo(iso?: string): string {
   const days = Math.floor(h / 24);
   if (days < 30) return `${days} d`;
   return new Date(iso).toLocaleDateString("pt-BR");
+}
+
+export function buildShareText(a: Activity): string {
+  const meta = ACTIVITY_META[a.type];
+  const isMoving = a.type === "cycle";
+  const perf = isMoving
+    ? `${fmtSpeed(a.avg_speed_kmh)} km/h`
+    : `${fmtPace(a.avg_pace_s_per_km)} /km`;
+  const dist = `${fmtDistance(a.distance_m)} ${fmtDistanceUnit(a.distance_m)}`;
+  const lines = [
+    `⚡ ${meta.label} no ZoneTrack`,
+    `📍 ${a.zone?.name ?? "Zona livre"}`,
+    `🏁 Distância: ${dist}`,
+    `⏱️ Tempo: ${fmtDuration(a.duration_s)}`,
+    `${isMoving ? "🚴" : "🏃"} ${isMoving ? "Velocidade" : "Ritmo"}: ${perf}`,
+    `🔥 ${Math.round(a.calories ?? 0)} kcal`,
+    ``,
+    `Bora competir na sua zona! #ZoneTrack`,
+  ];
+  return lines.join("\n");
 }

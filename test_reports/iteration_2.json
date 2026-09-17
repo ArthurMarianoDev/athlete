@@ -1,0 +1,52 @@
+{
+  "summary": "Iteration 2 (Personal Records, Weekly Goal, Share, Zone Feed + Likes) tested end-to-end. Backend: 22/22 pytest cases pass (existing 14 + 8 new: /profile/stats returns records{longest_distance_m,longest_duration_s,best_pace_s_per_km,max_speed_kmh}+weekly_goal_km+week_distance_m; PUT /profile/goal persists and reflects in /profile/stats and /auth/me; goal validation 422 for negative/>1000; records reflect newly created activity; POST /activities/{id}/like toggles, returns {like_count,liked_by_me}, persists in subsequent GETs, 404 on bogus id, 401 without token, and raw 'likes' array is not leaked in list responses; activity list includes author_name, like_count, liked_by_me). Frontend (mobile 390x844): Profile screen renders 'Meta semanal' card (testID weekly-goal-card) with progress bar, edit-goal-btn opens modal with goal-input + save-goal, and 'Recordes pessoais' grid with 4 cards (Maior distância, Melhor ritmo, Maior duração, Velocidade máx.) all populated correctly. Zone detail (/zone/[id]) shows 'Feed da zona' with author avatar, name, stats and LikeButton (testID like-<activityId>) — toggling goes 0→1→0 and updates the count. Activity Detail (/activity/[id]) shows both LikeButton and share-activity button; pressing share does not crash (no red screen). CRITICAL FIX APPLIED during testing: frontend Profile called api.post('/profile/goal') but backend defines PUT /profile/goal → save-goal was returning 405 Method Not Allowed. Added api.put(...) to /app/frontend/src/api/client.ts and switched profile.tsx to api.put. After fix, saving 30km updated the progress card text to 'de 30 km esta semana' as expected. Regression: seed login ana@test.com/secret123 works, seed zones list (5+auto) render, leaderboard endpoints intact, activity CRUD and soft-delete intact. No deprecated Expo packages detected.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Save weekly goal (edit-goal-btn → goal-input → save-goal)",
+        "issue": "FIXED during this run. Frontend used api.post to hit PUT /profile/goal → 405 Method Not Allowed; goal never saved from UI. Root cause: api client had no put() method and profile.tsx used api.post. Fix applied: added api.put in /app/frontend/src/api/client.ts and profile.tsx now calls api.put('/profile/goal', {weekly_goal_km}).",
+        "affected_testIDs": ["edit-goal-btn", "goal-input", "save-goal", "weekly-goal-card"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "activity/[id] Share",
+        "issues": [
+          "Web behavior: React Native's Share.share throws 'Share is not supported in this browser' on the Expo web preview (unhandled promise rejection). App does NOT crash (no red screen) but there is no visible feedback on web. Native (iOS/Android) will open the system share sheet correctly. Consider wrapping in try/catch and falling back to navigator.share() or clipboard on web for a smoother UX. Not blocking."
+        ]
+      }
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/test_iteration2.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "OPTIONAL: On web, wrap Share.share in try/catch and fall back to navigator.share() or copy-to-clipboard so the user gets feedback (currently silent on web preview, works fine on native).",
+    "OPTIONAL: Bottom tab bar buttons lack testID props (e.g. tab-profile, tab-zones). Testing agents currently navigate via visible text or direct URL. Adding testIDs to the tab buttons would harden E2E tests."
+  ],
+  "critical_code_review_comments": [
+    "server.py PUT /profile/goal validated (ge=0, le=1000) via Pydantic — good.",
+    "with_likes() correctly pops raw 'likes' array before returning; verified no leak in list/detail responses.",
+    "LikeButton uses optimistic update and invalidates ['activities'] and ['activity', id] queries — good.",
+    "buildShareText builds a well-formatted multi-line summary including zone name, distance, duration, pace/speed, calories.",
+    "api client in /app/frontend/src/api/client.ts was missing PUT — added during test to unblock goal-save. Consider also adding PATCH for future flexibility."
+  ],
+  "updated_files": [
+    "/app/frontend/src/api/client.ts (added api.put)",
+    "/app/frontend/app/(tabs)/profile.tsx (saveGoal now uses api.put)",
+    "/app/backend/tests/test_iteration2.py (new)",
+    "/app/test_reports/iteration_2.json (new)",
+    "/app/test_reports/pytest/pytest_results.xml (regenerated)"
+  ],
+  "success_rate": { "backend": "100% (22/22)", "frontend": "100% after in-run fix" },
+  "seed_data_creation": "No new seed data. Test activities created via API were soft-deleted at end of each test. Goal reverted to 20km after tests.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Bottom tab bar has no testIDs — navigate via page.get_by_text('Perfil'|'Zonas'|...) or use direct URLs (/zone/{id}, /activity/{id}). Share.share is unsupported on web preview but produces only a warning, not a crash — native builds will show the OS share sheet. api.put now exists; use it for PUT endpoints (currently /profile/goal only).",
+  "rca_of_issue": "RCA — Save weekly goal 405: Backend exposes only PUT /api/profile/goal. Frontend profile.tsx used api.post which built a POST /api/profile/goal request → FastAPI responded 405 Method Not Allowed. UI mutation resolved (no-op error swallowed by React Query) and the goal card never updated. Reproduction: log in as ana@test.com, open Profile, tap Editar on Meta semanal, enter 30, tap Salvar meta — bar still shows 'de 20 km esta semana'. Mitigation applied: added api.put in src/api/client.ts and switched profile.tsx saveGoal to api.put. Verified end-to-end: setting 30km updates card to 'de 30 km esta semana'; backend /profile/stats reflects new value."
+}

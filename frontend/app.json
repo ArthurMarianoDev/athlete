@@ -12,7 +12,10 @@
       "bundleIdentifier": "com.emergent.athletehub.y7hd77",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Medir distância e ritmo da sua atividade",
-        "UIBackgroundModes": ["location"]
+        "NSPhotoLibraryAddUsageDescription": "Salvar a imagem do seu treino na galeria",
+        "UIBackgroundModes": [
+          "location"
+        ]
       }
     },
     "android": {
@@ -21,7 +24,10 @@
         "backgroundColor": "#000000"
       },
       "package": "com.emergent.athletehub.y7hd77",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -45,11 +51,20 @@
           "locationWhenInUsePermission": "Medir distância e ritmo da sua atividade"
         }
       ],
+      [
+        "expo-media-library",
+        {
+          "savePhotosPermission": "Salvar a imagem do seu treino na galeria",
+          "photosPermission": "Salvar a imagem do seu treino na galeria",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
       "expo-font",
       "expo-image",
       "expo-secure-store",
       "expo-web-browser",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true

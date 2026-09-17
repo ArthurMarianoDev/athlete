@@ -19,6 +19,11 @@ export type IconName =
   | "walk"
   | "chevron"
   | "logout"
+  | "heart"
+  | "heartFilled"
+  | "share"
+  | "medal"
+  | "flag"
   | "ruler";
 
 export function Icon({
@@ -163,6 +168,49 @@ export function Icon({
       return (
         <Svg {...s}>
           <Path d="M14 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8M17 8l4 4-4 4M9 12h12" {...p} />
+        </Svg>
+      );
+    case "heart":
+      return (
+        <Svg {...s}>
+          <Path
+            d="M12 20s-7-4.5-9.5-9C1 8 2.5 4.5 6 4.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 15.5 12 20 12 20z"
+            {...p}
+          />
+        </Svg>
+      );
+    case "heartFilled":
+      return (
+        <Svg {...s}>
+          <Path
+            d="M12 20s-7-4.5-9.5-9C1 8 2.5 4.5 6 4.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 15.5 12 20 12 20z"
+            fill={color}
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    case "share":
+      return (
+        <Svg {...s}>
+          <Circle cx={18} cy={5} r={2.5} {...p} />
+          <Circle cx={6} cy={12} r={2.5} {...p} />
+          <Circle cx={18} cy={19} r={2.5} {...p} />
+          <Path d="M8.2 10.7l7.6-4.4M8.2 13.3l7.6 4.4" {...p} />
+        </Svg>
+      );
+    case "medal":
+      return (
+        <Svg {...s}>
+          <Circle cx={12} cy={14} r={5} {...p} />
+          <Path d="M9 9L7 3h4l1.5 3M15 9l2-6h-4l-1.5 3M12 12v1.5l1 .8" {...p} />
+        </Svg>
+      );
+    case "flag":
+      return (
+        <Svg {...s}>
+          <Path d="M5 21V4M5 4h11l-2 4 2 4H5" {...p} />
         </Svg>
       );
     default:

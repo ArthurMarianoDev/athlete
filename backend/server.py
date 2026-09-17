@@ -77,7 +77,35 @@ def public_user(u: dict) -> dict:
         "email": u.get("email"),
         "picture": u.get("picture"),
         "created_at": u.get("created_at"),
+        "weekly_goal_km": u.get("weekly_goal_km", 20),
     }
+
+
+def with_likes(a: dict, uid: str) -> dict:
+    likes = a.get("likes") or []
+    a["like_count"] = len(likes)
+    a["liked_by_me"] = uid in likes
+    a.pop("likes", None)
+    return a
+
+
+def parse_dt(value) -> datetime:
+    if isinstance(value, datetime):
+        dt = value
+    else:
+        try:
+            dt = datetime.fromisoformat(value)
+        except Exception:
+            return now_utc()
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def week_start() -> datetime:
+    now = now_utc()
+    monday = now - timedelta(days=now.weekday())
+    return monday.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +149,10 @@ class ZoneBody(BaseModel):
     latitude: float
     longitude: float
     radius_m: int = 3000
+
+
+class GoalBody(BaseModel):
+    weekly_goal_km: float = Field(ge=0, le=1000)
 
 
 # ---------------------------------------------------------------------------
@@ -361,11 +393,12 @@ async def create_activity(body: ActivityBody, current=Depends(get_current_user))
         "route": [p.dict() for p in body.route],
         "started_at": body.started_at or now_utc().isoformat(),
         "created_at": now_utc().isoformat(),
+        "likes": [],
         "deleted_at": None,
     }
     await db.activities.insert_one(act)
     act.pop("_id", None)
-    return {"activity": act}
+    return {"activity": with_likes(act, current["user_id"])}
 
 
 @api_router.get("/activities")
@@ -377,7 +410,7 @@ async def list_activities(scope: str = Query("me"), zone_id: Optional[str] = Que
     if zone_id:
         query["zone_id"] = zone_id
     acts = await db.activities.find(query, {"_id": 0}).sort("created_at", -1).to_list(300)
-    # attach author names for feed
+    # attach author names + likes for feed
     cache: dict = {}
     for a in acts:
         uid = a["user_id"]
@@ -385,6 +418,7 @@ async def list_activities(scope: str = Query("me"), zone_id: Optional[str] = Que
             u = await db.users.find_one({"user_id": uid}, {"_id": 0})
             cache[uid] = (u or {}).get("name", "Athlete")
         a["author_name"] = cache[uid]
+        with_likes(a, current["user_id"])
     return {"activities": acts}
 
 
@@ -399,7 +433,23 @@ async def get_activity(activity_id: str, current=Depends(get_current_user)):
     if a.get("zone_id"):
         zone = await db.zones.find_one({"zone_id": a["zone_id"]}, {"_id": 0})
     a["zone"] = zone
+    with_likes(a, current["user_id"])
     return {"activity": a}
+
+
+@api_router.post("/activities/{activity_id}/like")
+async def toggle_like(activity_id: str, current=Depends(get_current_user)):
+    a = await db.activities.find_one({"activity_id": activity_id, "deleted_at": None})
+    if not a:
+        raise HTTPException(status_code=404, detail="Atividade não encontrada")
+    uid = current["user_id"]
+    likes = a.get("likes") or []
+    if uid in likes:
+        likes = [x for x in likes if x != uid]
+    else:
+        likes = likes + [uid]
+    await db.activities.update_one({"activity_id": activity_id}, {"$set": {"likes": likes}})
+    return {"like_count": len(likes), "liked_by_me": uid in likes}
 
 
 @api_router.delete("/activities/{activity_id}")
@@ -421,13 +471,48 @@ async def profile_stats(current=Depends(get_current_user)):
     by_type: dict = {}
     for a in acts:
         by_type[a["type"]] = by_type.get(a["type"], 0) + (a.get("distance_m", 0) or 0)
+
+    # Personal records
+    longest_distance = max((a.get("distance_m", 0) or 0 for a in acts), default=0)
+    longest_duration = max((a.get("duration_s", 0) or 0 for a in acts), default=0)
+    paces = [
+        a.get("avg_pace_s_per_km")
+        for a in acts
+        if a.get("avg_pace_s_per_km") and a.get("avg_pace_s_per_km") > 0 and (a.get("distance_m", 0) or 0) >= 300
+    ]
+    best_pace = min(paces) if paces else None
+    max_speed = max((a.get("avg_speed_kmh", 0) or 0 for a in acts), default=0)
+
+    # Weekly goal progress
+    ws = week_start()
+    week_distance = sum(
+        (a.get("distance_m", 0) or 0) for a in acts if parse_dt(a.get("created_at")) >= ws
+    )
+    goal_km = current.get("weekly_goal_km", 20)
+
     return {
         "user": public_user(current),
         "total_distance_m": total_distance,
         "total_duration_s": total_duration,
         "activity_count": len(acts),
         "by_type": by_type,
+        "records": {
+            "longest_distance_m": longest_distance,
+            "longest_duration_s": longest_duration,
+            "best_pace_s_per_km": best_pace,
+            "max_speed_kmh": max_speed,
+        },
+        "weekly_goal_km": goal_km,
+        "week_distance_m": week_distance,
     }
+
+
+@api_router.put("/profile/goal")
+async def set_goal(body: GoalBody, current=Depends(get_current_user)):
+    await db.users.update_one(
+        {"user_id": current["user_id"]}, {"$set": {"weekly_goal_km": body.weekly_goal_km}}
+    )
+    return {"weekly_goal_km": body.weekly_goal_km}
 
 
 # ---------------------------------------------------------------------------

@@ -19,6 +19,7 @@ import {
 import { fonts, makeStyles, radius, spacing, useTheme } from "@/src/theme";
 import { LoadingView, PrimaryButton, Avatar, EmptyState } from "@/src/components/ui";
 import { Icon, ACTIVITY_ICON } from "@/src/components/icons";
+import { LikeButton } from "@/src/components/like-button";
 import { useSelectedZone } from "@/src/state/zone-context";
 
 const ZONE_BG =
@@ -130,7 +131,7 @@ export default function ZoneDetail() {
             <Text style={styles.link}>Ver ranking completo →</Text>
           </Pressable>
 
-          <Text style={styles.sectionTitle}>Atividades na zona</Text>
+          <Text style={styles.sectionTitle}>Feed da zona</Text>
           {activities.length === 0 ? (
             <View style={styles.emptyBox}>
               <Text style={styles.emptyText}>Sem atividades recentes.</Text>
@@ -141,19 +142,39 @@ export default function ZoneDetail() {
                 key={a.activity_id}
                 testID={`zone-activity-${a.activity_id}`}
                 onPress={() => router.push(`/activity/${a.activity_id}`)}
-                style={styles.actRow}
+                style={styles.feedCard}
               >
-                <Icon name={ACTIVITY_ICON[a.type]} size={18} color={colors.brandPrimary} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.actName} numberOfLines={1}>
-                    {a.author_name} · {ACTIVITY_META[a.type].label}
-                  </Text>
-                  <Text style={styles.actSub}>{timeAgo(a.created_at)}</Text>
+                <View style={styles.feedTop}>
+                  <Avatar name={a.author_name} size={36} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.actName} numberOfLines={1}>
+                      {a.author_name}
+                    </Text>
+                    <Text style={styles.actSub}>
+                      {ACTIVITY_META[a.type].label} · {timeAgo(a.created_at)}
+                    </Text>
+                  </View>
+                  <Icon name={ACTIVITY_ICON[a.type]} size={20} color={colors.brandPrimary} />
                 </View>
-                <Text style={styles.actVal}>
-                  {fmtDistance(a.distance_m)} {fmtDistanceUnit(a.distance_m)}
-                </Text>
-                <Text style={styles.actDur}>{fmtDuration(a.duration_s)}</Text>
+                <View style={styles.feedStats}>
+                  <View style={styles.feedStat}>
+                    <Text style={styles.feedStatVal}>
+                      {fmtDistance(a.distance_m)} {fmtDistanceUnit(a.distance_m)}
+                    </Text>
+                    <Text style={styles.feedStatLabel}>distância</Text>
+                  </View>
+                  <View style={styles.feedStat}>
+                    <Text style={styles.feedStatVal}>{fmtDuration(a.duration_s)}</Text>
+                    <Text style={styles.feedStatLabel}>tempo</Text>
+                  </View>
+                  <View style={{ marginLeft: "auto" }}>
+                    <LikeButton
+                      activityId={a.activity_id}
+                      likeCount={a.like_count}
+                      liked={a.liked_by_me}
+                    />
+                  </View>
+                </View>
               </Pressable>
             ))
           )}
@@ -241,7 +262,20 @@ const useStyles = makeStyles((colors) => ({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  actName: { fontFamily: fonts.bodySemi, color: colors.onSurface, fontSize: 14 },
+  feedCard: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.md,
+  },
+  feedTop: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  feedStats: { flexDirection: "row", alignItems: "center", gap: spacing.xl },
+  feedStat: { gap: 1 },
+  feedStatVal: { fontFamily: fonts.displaySemi, color: colors.onSurface, fontSize: 17 },
+  feedStatLabel: { fontFamily: fonts.bodyMedium, color: colors.muted, fontSize: 11, textTransform: "uppercase" },
+  actName: { fontFamily: fonts.bodyBold, color: colors.onSurface, fontSize: 14 },
   actSub: { fontFamily: fonts.body, color: colors.muted, fontSize: 12 },
   actVal: { fontFamily: fonts.displaySemi, color: colors.onSurface, fontSize: 15 },
   actDur: { fontFamily: fonts.bodyMedium, color: colors.muted, fontSize: 12, width: 52, textAlign: "right" },

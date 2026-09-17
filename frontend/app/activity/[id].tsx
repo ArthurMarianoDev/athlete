@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -17,8 +18,10 @@ import {
 } from "@/src/lib/format";
 import { fonts, makeStyles, radius, spacing, useTheme } from "@/src/theme";
 import { LoadingView, EmptyState, PrimaryButton } from "@/src/components/ui";
-import { RouteMap } from "@/src/components/route-map";
+import { SatelliteMap } from "@/src/components/satellite-map";
 import { Icon, ACTIVITY_ICON } from "@/src/components/icons";
+import { LikeButton } from "@/src/components/like-button";
+import { ShareActivityModal } from "@/src/components/share-activity-modal";
 import { useAuth } from "@/src/auth/auth-context";
 
 export default function ActivityDetail() {
@@ -29,6 +32,7 @@ export default function ActivityDetail() {
   const qc = useQueryClient();
   const { user } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const [shareOpen, setShareOpen] = useState(false);
 
   const query = useQuery({
     queryKey: ["activity", id],
@@ -70,10 +74,11 @@ export default function ActivityDetail() {
   return (
     <View style={styles.root}>
       <View style={styles.mapWrap}>
-        <RouteMap points={a.route} height={320} rounded={false} />
+        <SatelliteMap points={a.route} height={320} rounded={false} interactive />
         <LinearGradient
-          colors={["transparent", "rgba(13,14,18,0.4)", colors.surface]}
+          colors={["rgba(13,14,18,0.35)", "transparent", "rgba(13,14,18,0.85)"]}
           style={styles.mapScrim}
+          pointerEvents="none"
         />
         <Pressable
           testID="back-btn"
@@ -102,6 +107,22 @@ export default function ActivityDetail() {
           </View>
         </View>
 
+        <View style={styles.actionsRow}>
+          <LikeButton
+            activityId={a.activity_id}
+            likeCount={a.like_count}
+            liked={a.liked_by_me}
+          />
+          <Pressable
+            testID="share-activity"
+            onPress={() => setShareOpen(true)}
+            style={({ pressed }) => [styles.shareBtn, pressed && { opacity: 0.85 }]}
+          >
+            <Icon name="share" size={16} color={colors.onBrandPrimary} />
+            <Text style={styles.shareText}>Compartilhar</Text>
+          </Pressable>
+        </View>
+
         <View style={styles.grid}>
           {grid.map((g) => (
             <View key={g.label} style={styles.gridItem}>
@@ -123,6 +144,13 @@ export default function ActivityDetail() {
           />
         ) : null}
       </ScrollView>
+
+      <ShareActivityModal
+        visible={shareOpen}
+        activity={a}
+        athleteName={a.author_name ?? "Atleta"}
+        onClose={() => setShareOpen(false)}
+      />
     </View>
   );
 }
@@ -155,6 +183,17 @@ const useStyles = makeStyles((colors) => ({
   },
   title: { fontFamily: fonts.display, color: colors.onSurface, fontSize: 26 },
   subtitle: { fontFamily: fonts.body, color: colors.muted, fontSize: 13, marginTop: 2 },
+  actionsRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, marginBottom: spacing.lg },
+  shareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brandPrimary,
+  },
+  shareText: { fontFamily: fonts.bodyBold, color: colors.onBrandPrimary, fontSize: 13 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
   gridItem: {
     width: "47.5%",

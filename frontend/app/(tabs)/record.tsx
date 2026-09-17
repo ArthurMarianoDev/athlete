@@ -20,8 +20,8 @@ import {
 import { fonts, makeStyles, radius, spacing, useTheme } from "@/src/theme";
 import { PrimaryButton } from "@/src/components/ui";
 import { Icon, ACTIVITY_ICON } from "@/src/components/icons";
-import { RouteMap } from "@/src/components/route-map";
-import { useLocationPermission } from "@/src/hooks/use-location";
+import { SatelliteMap } from "@/src/components/satellite-map";
+import { useLocationPermission, getCurrentCoords } from "@/src/hooks/use-location";
 import { useSelectedZone } from "@/src/state/zone-context";
 import { usesNativeTabs } from "@/src/navigation";
 
@@ -56,6 +56,7 @@ export default function RecordScreen() {
   const [distance, setDistance] = useState(0); // meters
   const [elapsed, setElapsed] = useState(0); // seconds
   const [gpsReady, setGpsReady] = useState(false);
+  const [mapCenter, setMapCenter] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const watchRef = useRef<Location.LocationSubscription | null>(null);
   const lastPoint = useRef<RoutePoint | null>(null);
@@ -111,6 +112,15 @@ export default function RecordScreen() {
   };
 
   useEffect(() => () => stopWatch(), []);
+
+  // Center the satellite map on the athlete once location is available.
+  useEffect(() => {
+    if (perm.status === "granted" && !mapCenter) {
+      getCurrentCoords().then((c) => {
+        if (c) setMapCenter(c);
+      });
+    }
+  }, [perm.status, mapCenter]);
 
   const handleStart = async () => {
     const res = await perm.check();
@@ -259,7 +269,14 @@ export default function RecordScreen() {
 
       {/* Map area */}
       <View style={styles.mapArea}>
-        <RouteMap points={points} fill rounded={false} />
+        <SatelliteMap
+          points={points}
+          fill
+          rounded={false}
+          follow={status === "tracking" || status === "paused"}
+          interactive
+          initialCenter={mapCenter}
+        />
         {status !== "idle" ? null : (
           <View style={styles.mapHint} pointerEvents="none">
             <Text style={styles.mapHintText}>
