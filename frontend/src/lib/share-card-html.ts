@@ -73,7 +73,7 @@ if(pts.length >= 2){
   latC=(minLa+maxLa)/2; lngC=(minLo+maxLo)/2;
   var cos0=Math.cos(latC*Math.PI/180)||1;
   half=Math.max(maxLa-minLa,(maxLo-minLo)*cos0)/2*1.35;
-  if(half<0.0008) half=0.0008;
+  if(half<0.003) half=0.003;
 } else {
   var c = D.fallback || (pts.length?{latitude:lats[0],longitude:lngs[0]}:{latitude:0,longitude:0});
   latC=c.latitude; lngC=c.longitude; half=0.004;

@@ -49,7 +49,7 @@ export function SatelliteMap({
 <script>
   var INT = ${interactive ? "true" : "false"};
   var map = L.map('map',{zoomControl:INT,attributionControl:false,dragging:INT,scrollWheelZoom:INT,doubleClickZoom:INT,touchZoom:INT,boxZoom:INT,keyboard:false});
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,maxNativeZoom:18}).addTo(map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,maxNativeZoom:18}).addTo(map);
   map.setView([${center.latitude}, ${center.longitude}], 15);
   var line = L.polyline([], {color:'#00E65C', weight:5, opacity:0.95, lineJoin:'round', lineCap:'round'}).addTo(map);
   var startM=null, endM=null, userInteracted=false;
@@ -65,8 +65,8 @@ export function SatelliteMap({
       if(!endM){ endM = L.circleMarker(last, {radius:7,color:'#00E65C',weight:3,fillColor:'#0D0E12',fillOpacity:1}).addTo(map); }
       else { endM.setLatLng(last); }
     }
-    if(follow){ if(!userInteracted){ map.panTo(last, {animate:true}); } }
-    else { try{ map.fitBounds(line.getBounds().pad(0.25)); }catch(e){} }
+    if(follow){ if(!userInteracted){ map.setView(last, Math.max(map.getZoom(), 16), {animate:true}); } }
+    else { try{ map.fitBounds(line.getBounds().pad(0.3), {maxZoom:16}); }catch(e){ map.setView(last, 16); } }
   };
   document.addEventListener('message', handle);
   window.addEventListener('message', handle);
